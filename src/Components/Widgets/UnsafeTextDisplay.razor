@@ -1,0 +1,21 @@
+﻿@* UnsafeTextDisplay.razor *@
+@code {
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+
+    private MarkupString RenderTextWithLineBreaks()
+    {
+        if (string.IsNullOrEmpty(Text))
+        {
+            return new MarkupString(string.Empty);
+        }
+
+        // Replace newlines with <br> tags
+        var formattedText = Text.Replace("\n", "<br>").Replace("\r", "").Replace(" ", "&nbsp;").TrimStart('{').TrimEnd('}');
+
+        // Return as MarkupString to render the HTML content
+        return new MarkupString(formattedText);
+    }
+}
+
+<p>@(RenderTextWithLineBreaks())</p>

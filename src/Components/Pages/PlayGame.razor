@@ -1,0 +1,76 @@
+﻿@page "/"
+@inject SpaceTradersClient Client
+
+
+<h3>Play Game</h3>
+
+<button @onclick="OnViewLocationClick">View Location</button>
+
+@* <p>Result: @result</p>
+ *@
+@if (resultAgent != null)
+{
+    <p>Agent Account ID: @resultAgent.AccountId</p>
+    <p>Agent Headquarters: @resultAgent.Headquarters</p>
+    // ... display other agent information
+}
+
+@if (resultWaypoints != null)
+{
+    <h3>Waypoints in @systemSymbol</h3>
+    <ul>
+        @foreach (var waypoint in resultWaypoints.Data)
+        {
+            <li>@waypoint.Symbol - Type: @waypoint.Type</li>
+        }
+    </ul>
+}
+
+@code {
+    private string result = "No data yet";
+    private Agent resultAgent;
+    private Response5 resultWaypoints;
+    private string systemSymbol;
+
+    private async Task OnViewLocationClick()
+    { 
+
+        //result = JsonSerializer.Serialize(Client.GetMyAgentAsync());
+        try
+        {
+            // 1. Get the agent information
+            var agentResponse = await Client.GetMyAgentAsync();
+            resultAgent = agentResponse.Data;
+
+            // 2. Extract the Headquarters system symbol
+            string[] hqArray = SplitByDash(resultAgent.Headquarters);
+            systemSymbol = $"{hqArray[0]}-{hqArray[1]}";
+
+            // 3. Get waypoints in the headquarters system
+            // You can customize the parameters like page, limit, type and traits
+            var waypointsResponse = await Client.GetSystemWaypointsAsync(
+                page: 1,
+                limit: 10,
+                type: null, // Or specify a WaypointType if needed
+                traits: null, // Or specify a WaypointTraitSymbol if needed
+                systemSymbol: systemSymbol
+            );
+            resultWaypoints = waypointsResponse;
+
+            result = JsonSerializer.Serialize(waypointsResponse);
+
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors that occur during the API calls
+            Console.WriteLine($"Error fetching data: {ex.Message}");
+        }
+
+
+    }
+
+    private string[] SplitByDash(string input){
+        return input.Split('-');
+    }
+     
+}

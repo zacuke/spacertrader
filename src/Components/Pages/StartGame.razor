@@ -1,0 +1,26 @@
+﻿@page "/startgame"
+@inject SpaceTradersClient Client
+
+<h3>Start Game</h3>
+
+<button @onclick="OnClick">Create New Game</button>
+
+<p>Result: @result</p>
+
+@code {
+    private string result = "No data yet";
+
+    private async Task OnClick()
+    {
+ 
+        var httpResult = await Client.RegisterAsync(new()
+        {
+            Email = "ldkeeton@gmail.com",
+            Faction = FactionSymbol.AEGIS,
+            Symbol = "LLAMARS"
+
+        });
+        result = httpResult.Data.Token;
+    }
+
+}

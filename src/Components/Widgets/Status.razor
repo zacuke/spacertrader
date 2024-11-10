@@ -1,0 +1,35 @@
+﻿@inject SpaceTradersClient Client
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">status</a>
+    </div>
+</div>
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <p class="card"> <UnsafeTextDisplay Text="@result"></UnsafeTextDisplay></p>
+
+    </div>
+</div>
+
+
+@code {
+    private string result = "No data yet";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        var httpResult = await Client.GetMyAgentAsync(new()
+        {
+
+        });
+        var Default = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+        result = JsonSerializer.Serialize(httpResult, Default); 
+    }
+
+}
