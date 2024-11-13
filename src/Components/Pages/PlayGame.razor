@@ -5,9 +5,11 @@
 <h3>Play Game</h3>
 
 <button @onclick="OnViewLocationClick">View Location</button>
+<button @onclick="OnNegotiateContractClick">Negotiate Contract</button>
+<p>Ships: @ships</p>
 
-@* <p>Result: @result</p>
- *@
+<p>Result: @result</p>
+
 @if (resultAgent != null)
 {
     <p>Agent Account ID: @resultAgent.AccountId</p>
@@ -28,6 +30,7 @@
 
 @code {
     private string result = "No data yet";
+    private string ships = "No ship data yet";
     private Agent resultAgent;
     private Response5 resultWaypoints;
     private string systemSymbol;
@@ -72,5 +75,54 @@
     private string[] SplitByDash(string input){
         return input.Split('-');
     }
-     
+
+    private async Task OnNegotiateContractClick()
+    {
+        var shipListResponse = await Client.GetMyShipsAsync(null,null);
+        string firstShipSymbol;
+        if (shipListResponse.Data != null && shipListResponse.Data.Any())
+        {
+            firstShipSymbol = shipListResponse.Data.First().Symbol;
+            // You might want to pick a specific ship based on other criteria
+            // ... your logic here ...
+        }
+        else
+        {
+            // Handle the case where there are no ships found
+            throw new Exception("No Ships found");
+        }
+        ships = JsonSerializer.Serialize(shipListResponse);
+        // Assuming you have a valid shipSymbol
+        var negotiateResponse = await Client.NegotiateContractAsync(firstShipSymbol);
+
+        if (negotiateResponse.Data != null)
+        {
+            var contractId = negotiateResponse.Data.Contract.Id;
+            var acceptResponse = await Client.AcceptContractAsync(contractId);
+
+            if (acceptResponse.Data != null)
+            {
+                // Contract accepted successfully! 
+                // You can access contract details from acceptResponse.Data.Contract
+                result = JsonSerializer.Serialize(acceptResponse  ); 
+            }
+            else
+            {
+                // Handle the case where contract acceptance failed
+            }
+        }
+        else
+        {
+            // Handle the case where contract negotiation failed
+        }
+
+
+    }
+    /*
+     * Ships: {"Data":[{"Symbol":"LLAMARS-1","Registration":{"Name":"LLAMARS-1","FactionSymbol":"AEGIS","Role":8,"AdditionalProperties":{}},"Nav":{"SystemSymbol":"X1-RQ14","WaypointSymbol":"X1-RQ14-A1","Route":{"Destination":{"Symbol":"X1-RQ14-A1","Type":0,"SystemSymbol":"X1-RQ14","X":9,"Y":23,"AdditionalProperties":{}},"Origin":{"Symbol":"X1-RQ14-A1","Type":0,"SystemSymbol":"X1-RQ14","X":9,"Y":23,"AdditionalProperties":{}},"DepartureTime":"2024-11-05T12:36:17.115+00:00","Arrival":"2024-11-05T12:36:17.115+00:00","AdditionalProperties":{}},"Status":2,"FlightMode":2,"AdditionalProperties":{}},"Crew":{"Current":57,"Required":57,"Capacity":80,"Rotation":0,"Morale":100,"Wages":0,"AdditionalProperties":{}},"Frame":{"Symbol":5,"Name":"Frigate","Description":"A medium-sized, multi-purpose spacecraft, often used for combat, transport, or support operations.","Condition":1,"Integrity":1,"ModuleSlots":8,"MountingPoints":5,"FuelCapacity":400,"Requirements":{"Power":8,"Crew":25,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Reactor":{"Symbol":2,"Name":"Fission Reactor I","Description":"A basic fission power reactor, used to generate electricity from nuclear fission reactions.","Condition":1,"Integrity":1,"PowerOutput":31,"Requirements":{"Power":0,"Crew":8,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Engine":{"Symbol":2,"Name":"Ion Drive II","Description":"An advanced propulsion system that uses ionized particles to generate high-speed, low-thrust acceleration, with improved efficiency and performance.","Condition":1,"Integrity":1,"Speed":30,"Requirements":{"Power":6,"Crew":8,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Cooldown":{"ShipSymbol":"LLAMARS-1","TotalSeconds":0,"RemainingSeconds":0,"Expiration":"0001-01-01T00:00:00+00:00","AdditionalProperties":{}},"Modules":[{"Symbol":3,"Capacity":40,"Range":0,"Name":"Expanded Cargo Hold","Description":"An expanded cargo hold module that provides more efficient storage space for a ship\u0027s cargo.","Requirements":{"Power":2,"Crew":2,"Slots":2,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":5,"Capacity":40,"Range":0,"Name":"Crew Quarters","Description":"A module that provides living space and amenities for the crew.","Requirements":{"Power":1,"Crew":2,"Slots":1,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":5,"Capacity":40,"Range":0,"Name":"Crew Quarters","Description":"A module that provides living space and amenities for the crew.","Requirements":{"Power":1,"Crew":2,"Slots":1,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":0,"Capacity":0,"Range":0,"Name":"Mineral Processor","Description":"Crushes and processes extracted minerals and ores into their component parts, filters out impurities, and containerizes them into raw storage units.","Requirements":{"Power":1,"Crew":0,"Slots":2,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":1,"Capacity":0,"Range":0,"Name":"Gas Processor","Description":"Filters and processes extracted gases into their component parts, filters out impurities, and containerizes them into raw storage units.","Requirements":{"Power":1,"Crew":0,"Slots":2,"AdditionalProperties":{}},"AdditionalProperties":{}}],"Mounts":[{"Symbol":7,"Name":"Sensor Array II","Description":"An advanced sensor array that improves a ship\u0027s ability to detect and track other objects in space with greater accuracy and range.","Strength":4,"Deposits":null,"Requirements":{"Power":2,"Crew":2,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":1,"Name":"Gas Siphon II","Description":"An advanced gas siphon that can extract gas from gas giants and other gas-rich bodies more efficiently and at a higher rate.","Strength":20,"Deposits":null,"Requirements":{"Power":2,"Crew":2,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":10,"Name":"Mining Laser II","Description":"An advanced mining laser that is more efficient and effective at extracting valuable minerals from asteroids and other space objects.","Strength":5,"Deposits":null,"Requirements":{"Power":2,"Crew":2,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":4,"Name":"Surveyor II","Description":"An advanced survey probe that can be used to gather information about a mineral deposit with greater accuracy.","Strength":2,"Deposits":[0,1,2,3,4,5,6,7,8,9,10,11,12],"Requirements":{"Power":3,"Crew":4,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}}],"Cargo":{"Capacity":40,"Units":0,"Inventory":[],"AdditionalProperties":{}},"Fuel":{"Current":400,"Capacity":400,"Consumed":{"Amount":0,"Timestamp":"2024-11-05T12:36:17.115+00:00","AdditionalProperties":{}},"AdditionalProperties":{}},"AdditionalProperties":{}},{"Symbol":"LLAMARS-2","Registration":{"Name":"LLAMARS-2","FactionSymbol":"AEGIS","Role":11,"AdditionalProperties":{}},"Nav":{"SystemSymbol":"X1-RQ14","WaypointSymbol":"X1-RQ14-H47","Route":{"Destination":{"Symbol":"X1-RQ14-H47","Type":2,"SystemSymbol":"X1-RQ14","X":-34,"Y":28,"AdditionalProperties":{}},"Origin":{"Symbol":"X1-RQ14-H47","Type":2,"SystemSymbol":"X1-RQ14","X":-34,"Y":28,"AdditionalProperties":{}},"DepartureTime":"2024-11-05T12:36:17.201+00:00","Arrival":"2024-11-05T12:36:17.201+00:00","AdditionalProperties":{}},"Status":2,"FlightMode":2,"AdditionalProperties":{}},"Crew":{"Current":0,"Required":0,"Capacity":0,"Rotation":0,"Morale":100,"Wages":0,"AdditionalProperties":{}},"Frame":{"Symbol":0,"Name":"Probe","Description":"A small, unmanned spacecraft used for exploration, reconnaissance, and scientific research.","Condition":1,"Integrity":1,"ModuleSlots":0,"MountingPoints":0,"FuelCapacity":0,"Requirements":{"Power":1,"Crew":0,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Reactor":{"Symbol":0,"Name":"Solar Reactor I","Description":"A basic solar power reactor, used to generate electricity from solar energy.","Condition":1,"Integrity":1,"PowerOutput":3,"Requirements":{"Power":0,"Crew":0,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Engine":{"Symbol":0,"Name":"Impulse Drive I","Description":"A basic low-energy propulsion system that generates thrust for interplanetary travel.","Condition":1,"Integrity":1,"Speed":3,"Requirements":{"Power":1,"Crew":0,"Slots":0,"AdditionalProperties":{}},"AdditionalProperties":{}},"Cooldown":{"ShipSymbol":"LLAMARS-2","TotalSeconds":0,"RemainingSeconds":0,"Expiration":"0001-01-01T00:00:00+00:00","AdditionalProperties":{}},"Modules":[],"Mounts":[],"Cargo":{"Capacity":0,"Units":0,"Inventory":[],"AdditionalProperties":{}},"Fuel":{"Current":0,"Capacity":0,"Consumed":{"Amount":0,"Timestamp":"2024-11-05T12:36:17.201+00:00","AdditionalProperties":{}},"AdditionalProperties":{}},"AdditionalProperties":{}}],"Meta":{"Total":2,"Page":1,"Limit":10,"AdditionalProperties":{}},"AdditionalProperties":{}}
+
+Result: {"Data":{"Agent":{"AccountId":"cm34fovrzgzpqs60ch8indcuk","Symbol":"LLAMARS","Headquarters":"X1-RQ14-A1","Credits":222764,"StartingFaction":"AEGIS","ShipCount":2,"AdditionalProperties":{}},"Contract":{"Id":"cm3bfdj9xhe0ts60cwmyrd96x","FactionSymbol":"AEGIS","Type":0,"Terms":{"Deadline":"2024-11-17T10:01:50.8+00:00","Payment":{"OnAccepted":47764,"OnFulfilled":135944,"AdditionalProperties":{}},"Deliver":[{"TradeSymbol":"LAB_INSTRUMENTS","DestinationSymbol":"X1-RQ14-A4","UnitsRequired":21,"UnitsFulfilled":0,"AdditionalProperties":{}}],"AdditionalProperties":{}},"Accepted":true,"Fulfilled":false,"Expiration":"2024-11-11T10:01:50.8+00:00","DeadlineToAccept":"2024-11-11T10:01:50.8+00:00","AdditionalProperties":{}},"AdditionalProperties":{}},"AdditionalProperties":{}}
+
+*/
 }
+
